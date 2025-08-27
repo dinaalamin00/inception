@@ -65,9 +65,9 @@ SHELL ["bash", "-c"]
 # copy the file containing the script that sets up the mariadb when container starts
 # /usr/local/bin/ is a standard directory for executable programs
 # after copying change the executable permission to ensure the container can execute the script without any errors
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["docker-entrypoint.sh"]
+COPY ./requirements/mariadb/scripts.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/scripts.sh
+ENTRYPOINT ["/usr/local/bin/scripts.sh"]
 # CMD provides default arguments to the ENTRYPOINT
 # for mariadb this usually tells the container what process to run by default if not other command is specified
 # use both; ENTRTPOINT to ensure the db always runs its setup logic(cannot be overridden accidentally)
