@@ -18,7 +18,7 @@ services:
     env: .env
     container_name: wordpress
     volumes: wordpress:/var/www/html/wordpress
-    ports:"9000:9000"
+    ports: "9000:9000"
     networks: web
     depends_on: mariadb
     restart: always
@@ -29,7 +29,7 @@ services:
     env: .env
     container_name: mariadb
     volumes: mariadb_data:/var/lib/mysqls
-    ports:"3306:3306"
+    ports: "3306:3306"
     networks: web
     depends_on: mariadb
     restart: always
@@ -43,13 +43,13 @@ volumes:
     name: wordpress
     driver: local
     driver_opts:
-      type:'none'
+      type: 'none'
       o: bind
       device: '/home/$USER/data/wordpress'
   mariadb:
     name: mariadb
     driver: local
     driver_opts:
-      type:'none'
+      type: 'none'
       o: bind
       device: '/home/$USER/data/mariadb'
