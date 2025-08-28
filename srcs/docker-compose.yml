@@ -13,8 +13,8 @@ services:
     restart: always
   wordpress:
     build:
-      context:
-      Dockerfile:
+      context: .
+      Dockerfile: srcs/requirements/wordpress/Dockerfile
     env: .env
     container_name: wordpress
     volumes: wordpress:/var/www/html/wordpress
@@ -24,8 +24,8 @@ services:
     restart: always
   mariadb:
     build:
-      context:
-      Dockerfile:
+      context: .
+      Dockerfile: srcs/requirements/mariadb/Dockerfile
     env: .env
     container_name: mariadb
     volumes: mariadb_data:/var/lib/mysqls
