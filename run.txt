@@ -1,0 +1,12 @@
+docker network create inception_network
+
+docker build -t mariadb_image -f srcs/requirements/mariadb/Dockerfile.mariadb .
+docker build -t wordpress_image -f srcs/requirements/wordpress/Dockerfile.wordpress .
+
+# MariaDB first
+docker run -d --name mariadb --network inception_network \
+    --env-file .env mariadb_image
+
+# WordPress next
+docker run -d --name wordpress --network inception_network \
+    --env-file .env -p 9000:9000 wordpress_image

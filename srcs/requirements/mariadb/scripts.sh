@@ -4,6 +4,13 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
     echo "Initializing MariaDB data directory..."
     mysql --initialize-insecure --user=mysql
 fi
+# Start MariaDB in background for setup
+mysqld_safe --skip-networking &
+# Wait until MariaDB is ready
+until mysqladmin ping >/dev/null 2>&1; do
+    sleep 2
+done
+
 if [ -n "$MYSQL_ROOT_PASSWORD" ]; then
     echo "Setting uo root user..."
     mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';"
@@ -29,6 +36,8 @@ for f in /docker-entrypoint-initdb.d/*; do
     esac
 done
 
+# Stop the background server and run the main MariaDB process
+mysqladmin shutdown
 exec mysqld
 
 # cmd - 1
