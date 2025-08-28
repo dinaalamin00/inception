@@ -41,7 +41,7 @@ ENV MYSQL_PASSWORD=mypass
 # - user and permission management
 # - insert initial data
 # - consistent database: ensure every container starts with the same database state
-COPY init.sql /docker-entrypoint-initdb.d/
+COPY srcs/requirements/mariadb/init.sql /docker-entrypoint-initdb.d/
 
 # make mariadb accessible from outside the container
 EXPOSE 3306
@@ -65,7 +65,7 @@ SHELL ["bash", "-c"]
 # copy the file containing the script that sets up the mariadb when container starts
 # /usr/local/bin/ is a standard directory for executable programs
 # after copying change the executable permission to ensure the container can execute the script without any errors
-COPY ./requirements/mariadb/scripts.sh /usr/local/bin/
+COPY srcs/requirements/mariadb/scripts.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/scripts.sh
 ENTRYPOINT ["/usr/local/bin/scripts.sh"]
 # CMD provides default arguments to the ENTRYPOINT

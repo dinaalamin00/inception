@@ -81,11 +81,12 @@ WORKDIR /var/www/html
 # This option ensures files are extracted directly into /var/www/html instead of /var/www/html/wordpress/.
 # rm latest.tar.gz
 # Cleans up the archive after extraction to keep the image smaller.
-RUN wget https://wordpress.org/latest.tar.g\
+RUN wget https://wordpress.org/latest.tar.gz\
     && tar -xvzf latest.tar.gz --strip-component=1\
     && rm latest.tar.gz
 
-COPY ./requirements/wordpress/scripts.sh /usr/local/bin/
+COPY srcs/requirements/wordpress/scripts.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/scripts.sh
 
 # Expose PHP-FPM port (default is 9000)
 EXPOSE 9000
