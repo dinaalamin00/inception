@@ -1,0 +1,39 @@
+mariaDB data directory (/var/lib/mysql)
+it stores all databases, tables, indexes, and logs
+in the container this actually mounted as docker volume(mariadb_data) so data persists across container restarts
+in the docker compose we mapped the containers /var/lib/mysql to the host folder /home/$USER/data/mariadb
+
+- Initialization scripts (/docker-entrypoint-initdb.d/):
+    automatically runs when the mariadb container is created for the first time
+    files types supported: .sql, .sh (SQL or shell commands)
+
+- MariaDB configuration files (/etc/mysql/mariadb.conf.d/)
+    configure how mariadb behaves(network, users, logging, memory limits)
+    key files:
+        50-server.cnf -> main server configuration(bind-address, port..)
+        mu.cnf global configuration file that includes all others
+    in the scripts.sh we modified the $DB_CONF_ROUTE
+        1-   echo "[mysqld]" >> $DB_CONF_ROUTE
+        2-  echo "bind-address=0.0.0.0" >> $DB_CONF_ROUTE
+    **1 "[mysqld]" is a section header in mariaDB/MySQL configuration files
+        we add the section header to the path in the variable DB_CONF_ROUTE that holds a path to mariaDB configuration file
+    **2 add "bind-address=0.0.0.0" to the conf file too
+        bind-address defines which network interface mariaDB wil listen on
+        0.0.0.0 means listen to all available network interfaces, allowing connections from outside the container(wordpress)
+
+- wordpress files (/var/www/html)
+    stores wordpress core files, themes, plugins, and uploads.
+    WordPress reads database credentials from environment variables:
+        WP_DB_HOST=mariadb
+        WP_DB_NAME=wordpress
+        WP_DB_USER=wp_user
+        WP_DB_PASSWORD=wp_pass
+- environment variables
+    has centralized configurations for both containers(mariadb, wordpress)
+    For MariaDB:
+        MYSQL_ROOT_PASSWORD → root password
+        MYSQL_DATABASE → database to create automatically
+        MYSQL_USER / MYSQL_PASSWORD → non-root user
+    For WordPress:
+        WP_DB_* → database credentials WordPress uses
+    Important: These should match to avoid connection errors.

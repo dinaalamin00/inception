@@ -15,6 +15,7 @@ FROM debian:bullseye
 # the client is not always required for production, but useful dor debugging and initialization
 # ' -y ' assumes "yes"to all prompts, without it the installation may pause
 # in docker builds interaction is not possible so -y isures automatic installation
+USER root
 RUN apt-get update && apt-get install -y mariadb-server mariadb-client
 
 # Cleans up cached package lists to reduce image size.
@@ -23,13 +24,13 @@ RUN rm -rf /var/lib/apt/lists/*
 # when you create a mariadb container, certain environment variables helps configure the database on the first setup
 # these env-var are mainly used for automated initialization
 # - root user password (required)
-ENV MYSQL_ROOT_PASSWORD=rootpassword
+# ENV MYSQL_ROOT_PASSWORD=rootpassword
 # - create database automatically at startup (optional)
-ENV MYSQL_DATABASE=mydb
+# ENV MYSQL_DATABASE=mydb
 # - creat a new non-root user (optional)
-ENV MYSQL_USER=myuser
+# ENV MYSQL_USER=myuser
 # -  user(MYSQL_USER) password (optional)
-ENV MYSQL_PASSWORD=mypass
+# ENV MYSQL_PASSWORD=mypass
 
 
 # copy initialization script to allow the container to automatically run custom setup tasks the first time it starts
@@ -41,7 +42,7 @@ ENV MYSQL_PASSWORD=mypass
 # - user and permission management
 # - insert initial data
 # - consistent database: ensure every container starts with the same database state
-COPY srcs/requirements/mariadb/init.sql /docker-entrypoint-initdb.d/
+COPY init.sql /docker-entrypoint-initdb.d/
 
 # make mariadb accessible from outside the container
 EXPOSE 3306
@@ -65,12 +66,12 @@ SHELL ["bash", "-c"]
 # copy the file containing the script that sets up the mariadb when container starts
 # /usr/local/bin/ is a standard directory for executable programs
 # after copying change the executable permission to ensure the container can execute the script without any errors
-COPY srcs/requirements/mariadb/scripts.sh /usr/local/bin/
+COPY scripts.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/scripts.sh
-ENTRYPOINT ["/usr/local/bin/scripts.sh"]
+ENTRYPOINT ["bash", "/usr/local/bin/scripts.sh"]
 # CMD provides default arguments to the ENTRYPOINT
 # for mariadb this usually tells the container what process to run by default if not other command is specified
 # use both; ENTRTPOINT to ensure the db always runs its setup logic(cannot be overridden accidentally)
             # CMD allows you to override the default command easilt if needed
-CMD ["mysqld"]
+# CMD ["mysqld"]
 # ["mysqld"] tells Docker to start the MariaDB server by default.

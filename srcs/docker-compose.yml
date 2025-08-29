@@ -1,55 +1,50 @@
 version: "3.9"
+
 services:
-  nginx:
-    build:
-      context: /nginx
-      Dockerfile: /Dockerfile.nginx
-    container_name: nginx
-    env_file: .env
-    volumes: wordpress:/var/www/html/wordpress
-    networks: web
-    ports: "443:443"
-    depends_on: wordpress
-    restart: always
   wordpress:
     build:
-      context: .
-      Dockerfile: srcs/requirements/wordpress/Dockerfile
-    env: .env
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
     container_name: wordpress
-    volumes: wordpress:/var/www/html/wordpress
-    ports: "9000:9000"
-    networks: web
-    depends_on: mariadb
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
+      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
+    volumes:
+      - wordpress:/var/www/html
+    ports:
+      - "9000:9000"
+    depends_on:
+      - mariadb
     restart: always
+    networks:
+      - inception_network
+
   mariadb:
     build:
-      context: .
-      Dockerfile: srcs/requirements/mariadb/Dockerfile
-    env: .env
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
     container_name: mariadb
-    volumes: mariadb_data:/var/lib/mysqls
-    ports: "3306:3306"
-    networks: web
-    depends_on: mariadb
+    env_file: .env
+    environment:
+      - DB_CONF_ROUTE=/etc/mysql/mariadb.conf.d/50-server.cnf
+      - DB_INSTALL=/var/lib/mysql
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
     restart: always
+    networks:
+      - inception_network
 
 networks:
-  web:
-    name: inception
+  inception_network:
+    driver: bridge
 
 volumes:
   wordpress:
     name: wordpress
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: bind
-      device: '/home/$USER/data/wordpress'
-  mariadb:
-    name: mariadb
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: bind
-      device: '/home/$USER/data/mariadb'
+  mariadb_data:
+    name: mariadb_data

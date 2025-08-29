@@ -10,3 +10,12 @@ docker run -d --name mariadb --network inception_network \
 # WordPress next
 docker run -d --name wordpress --network inception_network \
     --env-file .env -p 9000:9000 wordpress_image
+
+
+ docker-compose  -f srcs/docker-compose.yml up -d --build
+ docker exec -it wordpress bash
+
+ docker exec -it wordpress bash
+apt-get update && apt-get install -y mariadb-client  # if mysql command not available
+mysql -h mariadb -u wp_user -p
+# Enter WP_DB_PASSWORD

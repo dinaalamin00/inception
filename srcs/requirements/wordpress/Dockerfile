@@ -57,9 +57,9 @@ FROM debian:bullseye
 
 
 # Install necessary packages: PHP, PHP-FPM, and WordPress dependencies
-RUN apt-get update && apt-get install -y mariadb-server mariadb-client\
-    php7.4 php7.4-fpm php7.4-mysql unzip curl wget mariadb-client
-RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install mariadb-client -y \
+    php7.4 php7.4-fpm php7.4-mysql unzip curl wget \
+    && rm -rf /var/lib/apt/lists/*
 
 # Sets the working directory inside the container.
 # Any following commands (RUN, COPY, ADD, etc.) will be executed relative to this directory.
@@ -85,7 +85,7 @@ RUN wget https://wordpress.org/latest.tar.gz\
     && tar -xvzf latest.tar.gz --strip-component=1\
     && rm latest.tar.gz
 
-COPY srcs/requirements/wordpress/scripts.sh /usr/local/bin/
+COPY scripts.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/scripts.sh
 
 # Expose PHP-FPM port (default is 9000)
