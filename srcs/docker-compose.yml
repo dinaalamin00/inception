@@ -1,6 +1,20 @@
 version: "3.9"
 
 services:
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    env_file :
+      - ./.env
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress:/var/www/html/wordpress
+    networks:
+      - inception_network
+    depends_on:
+      - wordpress
+    restart : always
   wordpress:
     build:
       context: ./requirements/wordpress

@@ -1,10 +1,16 @@
 FROM debian:bullseye
 
-RUN apt -y update 
-RUN apt install -y nginx 
-RUN apt upgrade -y openssl
+RUN apt -y update && apt install -y nginx openssl && apt clean
 
-COPY ./requirements/nginx/tools/conf.sh /usr/local/bin/conf.sh
+# Copy SSL certificates and configuration script
+COPY tools/conf.sh /usr/local/bin/conf.sh
 RUN chmod +x /usr/local/bin/conf.sh
 
-ENTRYPOINT ["conf.sh"]
+# Ensure the default site is cleared
+RUN rm -f /etc/nginx/sites-enabled/default
+
+# Expose port 443
+EXPOSE 443
+
+ENTRYPOINT ["/usr/local/bin/conf.sh"]
+CMD ["nginx", "-g", "daemon off;"]
