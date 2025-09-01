@@ -1,13 +1,23 @@
 #!/bin/bash
 
-# Generate nginx.conf dynamically using environment variables
-cat > /etc/nginx/sites-available/default <<EOL
+# Ensure SSL directory exists
+mkdir -p "$SSL_DIR"
+
+# Generate self-signed SSL certificate if it doesn't exist
+if [ ! -f "$CERT" ] || [ ! -f "$CERT_KEY" ]; then
+    openssl req -x509 -newkey rsa:2048 -days 365 -nodes \
+    -keyout "$CERT_KEY" -out "$CERT" \
+    -subj "/CN=${DOMAIN_NAME}"
+fi
+
+# Generate nginx.conf dynamically
+cat > /etc/nginx/conf.d/default.conf <<EOL
 server {
     listen 443 ssl;
     server_name ${DOMAIN_NAME};
 
-    ssl_certificate /etc/nginx/ssl/${DOMAIN_NAME}.crt;
-    ssl_certificate_key /etc/nginx/ssl/${DOMAIN_NAME}.key;
+    ssl_certificate ${CERT};
+    ssl_certificate_key ${CERT_KEY};
 
     location / {
         proxy_pass http://wordpress:9000;
@@ -18,11 +28,10 @@ server {
     }
 
     location ~ \.php\$ {
-        include snippets/fastcgi-php.conf;
+        include fastcgi_params;
         fastcgi_pass wordpress:9000;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        include fastcgi_params;
     }
 }
 EOL

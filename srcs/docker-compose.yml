@@ -60,5 +60,15 @@ networks:
 volumes:
   wordpress:
     name: wordpress
+    driver: local
+    driver_opts:
+      type: none
+      device: '/home/$USER/data/wordpress'
+      o: bind
   mariadb_data:
     name: mariadb_data
+    driver: local
+    driver_opts:
+      type: none
+      device: '/home/$USER/data/mariadb'
+      o: bind
