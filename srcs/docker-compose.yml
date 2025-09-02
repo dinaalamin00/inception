@@ -70,5 +70,5 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: '/home/$USER/data/mariadb'
+      device: '/home/$USER/data/mariadb_data'
       o: bind

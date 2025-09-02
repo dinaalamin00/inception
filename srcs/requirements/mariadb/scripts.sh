@@ -1,37 +1,47 @@
-#!/usr/bin/env bash
+#!/bin/bash
+set -e
 
-# Allow connections from any IP, not just localhost
-# This is so WP can connect from a separate container
-# Configure MariaDB to listen on all interfaces
-if [ -n "$DB_CONF_ROUTE" ]; then
-  echo >> "$DB_CONF_ROUTE"
-  echo "[mysqld]" >> "$DB_CONF_ROUTE"
-  echo "bind-address=0.0.0.0" >> "$DB_CONF_ROUTE"
+
+# Initialize MariaDB data directory if it doesn't exist
+if [ ! -d "/var/lib/mysql/mysql" ]; then
+    echo "Initializing MariaDB data directory..."
+    # Use --initialize instead of --initialize-insecure for security
+    mariadb-install-db --user=mysql --datadir=/var/lib/mysql
 fi
-# Create database
-mysql_install_db --datadir=$DB_INSTALL
 
-# Start in bg (&)
-mysqld_safe &
-# Store pid for wait cmd
-mysql_pid=$!
+# Start MariaDB in background for setup
+mysqld_safe --skip-networking &
 
-# Loop to check if MariaDB has started
-# This prevents WP from connecting before MariaDB is ready
-# Everything still works without this so it
-# might not be necessary. Just a precaution
-# but probably can be removed safely
-until mysqladmin ping >/dev/null 2>&1; do
-  echo -n "."; sleep 0.2
+# Wait until MariaDB is ready
+until mysqladmin ping --silent; do
+    echo "Waiting for MariaDB to start..."
+    sleep 2
 done
 
-mysql -u root <<EOF
-CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;
-CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
-GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%';
-FLUSH PRIVILEGES;
-EOF
+# Configure root user
+if [ -n "$MYSQL_ROOT_PASSWORD" ]; then
+    echo "Setting up root user..."
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';"
+fi
 
-# Keeps container running until MariaDB process ends
-wait $mysql_pid
+# Create database if specified
+if [ -n "$MYSQL_DATABASE" ]; then
+    echo "Creating database $MYSQL_DATABASE..."
+    mysql -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;"
+fi
 
+# Create non-root user (e.g., wuser, avoiding 'admin')
+if [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASSWORD" ]; then
+    echo "Creating user $MYSQL_USER..."
+    mysql -e "CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';"
+    mysql -e "GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%';"
+fi
+
+# Flush privileges to apply changes
+mysql -e "FLUSH PRIVILEGES;"
+
+# Stop background MariaDB process
+mysqladmin shutdown
+
+# Run MariaDB in foreground
+exec mysqld_safe

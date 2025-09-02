@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:bookworm
 
 RUN apt -y update && apt install -y nginx openssl && apt clean
 
