@@ -1,28 +1,30 @@
-# Makefile for Inception project
-
 SRC_DIR = srcs
-DATA_DIR = /home/$(USER)/data
+DATA_DIR = /home/diahmed/data
 
 all: build up
 
 up: build
-	sudo mkdir -p $(DATA_DIR)/mariadb_data
-	sudo mkdir -p $(DATA_DIR)/wordpress
-	cd $(SRC_DIR) && docker-compose up -d
+	mkdir -p $(DATA_DIR)/mariadb_data $(DATA_DIR)/wordpress
+# 	chmod -R 755 $(DATA_DIR)/mariadb_data $(DATA_DIR)/wordpress
+	cd $(SRC_DIR) && sudo docker-compose up -d
 
 down:
-	cd $(SRC_DIR) && docker-compose down
+	cd $(SRC_DIR) && sudo docker-compose down
 
 build:
-	cd $(SRC_DIR) && docker-compose build
+	cd $(SRC_DIR) && sudo docker-compose build
 
 clean: down
-	docker rmi -f $$(docker images -q)
+	@CONTAINERS=$$(docker ps -a -q -f name=nginx -f name=wordpress -f name=mariadb); \
+	if [ -n "$$CONTAINERS" ]; then sudo docker rm -f $$CONTAINERS; fi
+	docker rmi -f srcs_mariadb srcs_wordpress srcs_nginx 2>/dev/null || true
 
-fclean: down
+fclean: clean
+	@CONTAINERS=$$(docker ps -a -q -f name=nginx -f name=wordpress -f name=mariadb); \
+	if [ -n "$$CONTAINERS" ]; then sudo docker rm -f $$CONTAINERS; fi
 	sudo docker volume rm -f mariadb_data wordpress 2>/dev/null || true
-	sudo rm -rf $(DATA_DIR)
-	docker system prune -af --volumes
+	rm -rf $(DATA_DIR)/mariadb_data $(DATA_DIR)/wordpress
+	sudo docker system prune -af --volumes
 
 re: fclean all
 

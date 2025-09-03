@@ -1,9 +1,22 @@
 FROM debian:bookworm
-USER root
 
-RUN apt-get update && apt-get install -y mariadb-server mariadb-client
+# Install MariaDB and dependencies
+RUN apt-get update && apt-get install -y \
+    mariadb-server mariadb-client procps && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY scripts.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/scripts.sh
+# Ensure MySQL user owns the data directory
+RUN mkdir -p /var/lib/mysql && chown -R mysql:mysql /var/lib/mysql
 
-ENTRYPOINT ["bash", "/usr/local/bin/scripts.sh"]
+# Copy MariaDB configuration
+COPY conf/my.cnf /etc/mysql/my.cnf
+
+# Copy initialization script
+COPY tools/init_db.sh /usr/local/bin/init_db.sh
+RUN chmod +x /usr/local/bin/init_db.sh
+
+# Expose MariaDB port
+EXPOSE 3306
+
+# Start MariaDB with initialization script
+ENTRYPOINT ["/bin/bash", "/usr/local/bin/init_db.sh"]

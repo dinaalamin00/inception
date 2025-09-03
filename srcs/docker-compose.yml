@@ -1,54 +1,56 @@
-version: "3.9"
+version: '3.9'
 
 services:
-  nginx:
-    build: ./requirements/nginx
-    container_name: nginx
-    env_file :
-      - ./.env
-    ports:
-      - "443:443"
+  mariadb:
+    build:
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+    container_name: mariadb
+    env_file: ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
     volumes:
-      - wordpress:/var/www/html/wordpress
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: always
     networks:
       - inception_network
-    depends_on:
-      - wordpress
-    restart : always
+
   wordpress:
     build:
       context: ./requirements/wordpress
       dockerfile: Dockerfile
     container_name: wordpress
-    env_file: .env
+    env_file: ./.env
     environment:
-      - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
-      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
-      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
-      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
+      - WORDPRESS_DB_HOST=mariadb
+      - WORDPRESS_DB_USER=${MYSQL_USER}
+      - WORDPRESS_DB_PASSWORD=${MYSQL_PASSWORD}
+      - WORDPRESS_DB_NAME=${MYSQL_DATABASE}
     volumes:
       - wordpress:/var/www/html
-    ports:
-      - "9000:9000"
     depends_on:
       - mariadb
     restart: always
     networks:
       - inception_network
 
-  mariadb:
+  nginx:
     build:
-      context: ./requirements/mariadb
+      context: ./requirements/nginx
       dockerfile: Dockerfile
-    container_name: mariadb
-    env_file: .env
-    environment:
-      - DB_CONF_ROUTE=/etc/mysql/mariadb.conf.d/50-server.cnf
-      - DB_INSTALL=/var/lib/mysql
-    volumes:
-      - mariadb_data:/var/lib/mysql
+    container_name: nginx
+    env_file: ./.env
     ports:
-      - "3306:3306"
+      - "443:443"
+    volumes:
+      - wordpress:/var/www/html
+    depends_on:
+      - wordpress
     restart: always
     networks:
       - inception_network
@@ -63,12 +65,12 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: '/home/$USER/data/wordpress'
+      device: /home/diahmed/data/wordpress
       o: bind
   mariadb_data:
     name: mariadb_data
     driver: local
     driver_opts:
       type: none
-      device: '/home/$USER/data/mariadb_data'
+      device: /home/diahmed/data/mariadb_data
       o: bind
