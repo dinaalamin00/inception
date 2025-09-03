@@ -1,5 +1,5 @@
 SRC_DIR = srcs
-DATA_DIR = /home/diahmed/data
+DATA_DIR = /home/$(USER)/data
 
 all: build up
 
@@ -23,7 +23,8 @@ fclean: clean
 	@CONTAINERS=$$(docker ps -a -q -f name=nginx -f name=wordpress -f name=mariadb); \
 	if [ -n "$$CONTAINERS" ]; then sudo docker rm -f $$CONTAINERS; fi
 	sudo docker volume rm -f mariadb_data wordpress 2>/dev/null || true
-	rm -rf $(DATA_DIR)/mariadb_data $(DATA_DIR)/wordpress
+#	sudo rm -rf $(DATA_DIR)/mariadb_data $(DATA_DIR)/wordpress
+	sudo rm -rf $(DATA_DIR)
 	sudo docker system prune -af --volumes
 
 re: fclean all

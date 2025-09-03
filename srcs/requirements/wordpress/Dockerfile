@@ -21,7 +21,7 @@ RUN wget https://wordpress.org/latest.tar.gz && \
     chmod -R 755 /var/www/html
 
 # Copy PHP-FPM configuration
-COPY conf/php-fpm.conf /etc/php/8.2/fpm/php-fpm.conf
+COPY conf/php-fpm.conf /etc/php/8.2/fpm/pool.d/www.conf
 
 # Copy initialization script
 COPY tools/init_wp.sh /usr/local/bin/init_wp.sh

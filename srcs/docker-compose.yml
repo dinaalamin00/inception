@@ -33,6 +33,8 @@ services:
       - WORDPRESS_DB_NAME=${MYSQL_DATABASE}
     volumes:
       - wordpress:/var/www/html
+    ports:
+      - "9000:9000"
     depends_on:
       - mariadb
     restart: always
